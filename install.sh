@@ -33,11 +33,19 @@ WORKDIR="$(mktemp -d)"
 trap 'rm -rf "${WORKDIR}"' EXIT
 
 echo "正在查询最新版本…"
-curl -fsSL "https://github.com/${REPO}/releases/latest/download/latest-mac.yml" \
-  -o "${WORKDIR}/latest-mac.yml" || {
-  echo "取不到发布清单，检查一下网络。" >&2
-  exit 1
-}
+# 先走 /latest/download（不限流）。这个跳转偶尔会短暂缓存在已删除的版本上，
+# 取不到就改问 API 拿准确的 tag 再取一次。
+if ! curl -fsSL "https://github.com/${REPO}/releases/latest/download/latest-mac.yml" \
+  -o "${WORKDIR}/latest-mac.yml" 2>/dev/null; then
+  TAG="$(curl -fsSL "https://api.github.com/repos/${REPO}/releases/latest" \
+    | awk -F'"' '/"tag_name"/ {print $4; exit}')"
+  if [ -z "${TAG}" ] || ! curl -fsSL \
+    "https://github.com/${REPO}/releases/download/${TAG}/latest-mac.yml" \
+    -o "${WORKDIR}/latest-mac.yml"; then
+    echo "取不到发布清单，检查一下网络。" >&2
+    exit 1
+  fi
+fi
 
 VERSION="$(awk '/^version:/ {print $2; exit}' "${WORKDIR}/latest-mac.yml")"
 ZIP_NAME="$(awk '/^path:/ {print $2; exit}' "${WORKDIR}/latest-mac.yml")"
