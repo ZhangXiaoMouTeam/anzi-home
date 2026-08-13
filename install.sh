@@ -105,4 +105,8 @@ find "${INSTALL_DIR}/${APP_NAME}" -exec xattr -d com.apple.quarantine {} + 2>/de
 echo
 echo "装好了：v${VERSION}"
 echo "以后有新版，软件会自己提示并安装，不用再跑这个命令。"
-open "${INSTALL_DIR}/${APP_NAME}" 2>/dev/null || true
+# 装到自定义目录时多半是在做验证，不自动打开：那个目录随时可能被清掉，
+# 应用启动到一半文件没了会直接崩。
+if [ -z "${ANZI_INSTALL_DIR:-}" ]; then
+  open "${INSTALL_DIR}/${APP_NAME}" 2>/dev/null || true
+fi
