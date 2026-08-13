@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ANZI 商品图</title>
+<meta name="description" content="macOS 本地商品图生成与复检工具：导入拍摄目录，自动出主图和详情页。">
+<style>
+  :root {
+    --bg: #fbfaf8;
+    --fg: #1c1b19;
+    --muted: #6f6a62;
+    --line: #e4e0d9;
+    --card: #ffffff;
+    --accent: #1c1b19;
+    --code-bg: #211f1c;
+    --code-fg: #f2efe9;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #171614;
+      --fg: #f2efe9;
+      --muted: #a09a91;
+      --line: #302d29;
+      --card: #1f1d1a;
+      --accent: #f2efe9;
+      --code-bg: #0f0e0d;
+      --code-fg: #f2efe9;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--fg);
+    font: 16px/1.7 -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 720px; margin: 0 auto; padding: 72px 24px 96px; }
+  header { margin-bottom: 48px; }
+  h1 { margin: 0 0 12px; font-size: 40px; line-height: 1.2; letter-spacing: -0.02em; }
+  .lede { margin: 0; color: var(--muted); font-size: 18px; }
+  h2 { margin: 48px 0 16px; font-size: 20px; letter-spacing: -0.01em; }
+  p { margin: 0 0 16px; }
+  .muted { color: var(--muted); }
+  .small { font-size: 14px; }
+  .cmd {
+    position: relative;
+    background: var(--code-bg);
+    color: var(--code-fg);
+    border-radius: 12px;
+    padding: 18px 60px 18px 20px;
+    overflow-x: auto;
+  }
+  .cmd code {
+    font: 13px/1.6 ui-monospace, SFMono-Regular, Menlo, monospace;
+    white-space: pre;
+  }
+  .copy {
+    position: absolute; top: 10px; right: 10px;
+    background: rgba(255,255,255,.12); color: var(--code-fg);
+    border: 0; border-radius: 8px; padding: 6px 10px;
+    font-size: 12px; cursor: pointer;
+  }
+  .copy:hover { background: rgba(255,255,255,.22); }
+  .box {
+    border: 1px solid var(--line); background: var(--card);
+    border-radius: 12px; padding: 20px;
+  }
+  .row { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+  a { color: inherit; }
+  .btn {
+    display: inline-block; text-decoration: none;
+    border: 1px solid var(--line); border-radius: 10px;
+    padding: 10px 16px; font-size: 15px; background: var(--card);
+  }
+  .btn:hover { border-color: var(--accent); }
+  .btn-primary { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+  ol, ul { margin: 0 0 16px; padding-left: 22px; }
+  li { margin-bottom: 8px; }
+  footer {
+    margin-top: 64px; padding-top: 24px;
+    border-top: 1px solid var(--line);
+    color: var(--muted); font-size: 14px;
+  }
+  code.inline {
+    background: var(--card); border: 1px solid var(--line);
+    border-radius: 6px; padding: 1px 6px;
+    font: 13px ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1>ANZI 商品图</h1>
+  <p class="lede">导入一个款号的拍摄目录，本机识别尺码与面料，自动排出全套主图和详情页。</p>
+</header>
+
+<h2>安装</h2>
+<p class="muted small">macOS · Apple 芯片。把下面这行粘进「终端」回车即可，装完会自动打开。</p>
+<div class="cmd">
+  <button class="copy" onclick="copyCommand(this)">复制</button>
+  <code id="install-cmd">curl -fsSL https://raw.githubusercontent.com/ZhangXiaoMouTeam/anzi-home/main/install.sh | bash</code>
+</div>
+<p class="small muted" style="margin-top:12px">
+  安装脚本会先核对下载文件的校验值和应用签名，对不上会直接中止。
+  <a href="https://github.com/ZhangXiaoMouTeam/anzi-home/blob/main/install.sh">看看它做了什么</a>
+</p>
+
+<h2>更新</h2>
+<p>装好之后不用再管：软件启动时会自己检查新版本，在后台下好之后提示你重启装上。</p>
+
+<h2>手动下载</h2>
+<div class="box">
+  <div class="row" id="downloads">
+    <a class="btn btn-primary" href="https://github.com/ZhangXiaoMouTeam/anzi-home/releases/latest">前往最新版本</a>
+  </div>
+  <p class="small muted" style="margin:14px 0 0" id="release-note">正在获取版本信息…</p>
+</div>
+<p class="small muted" style="margin-top:12px">
+  用浏览器下载 dmg 安装的话，首次打开需要<strong>右键点应用图标 → 打开</strong>。
+  这是因为安装包用的是本项目自己的证书，不是 Apple 签发的；上面那行命令不会有这个问题。
+</p>
+
+<h2>用它做什么</h2>
+<ul>
+  <li>识别尺码表和面料成分，中文与尺码表由模板确定性排版，不让模型写字</li>
+  <li>按固定版式输出 10 张主图和 26 张详情图，同一款只生成一次母版</li>
+  <li>素材直接导入，AI 认出类别和标签，认错的可以逐个改</li>
+  <li>全部通过后才导出，附带来源、版本和校验值完整的清单</li>
+</ul>
+
+<footer>
+  源码在私有仓库，本仓库只分发安装包 ·
+  <a href="https://github.com/ZhangXiaoMouTeam/anzi-home/releases">全部版本</a>
+</footer>
+
+</div>
+
+<script>
+function copyCommand(button) {
+  navigator.clipboard.writeText(document.getElementById('install-cmd').textContent).then(() => {
+    button.textContent = '已复制'
+    setTimeout(() => { button.textContent = '复制' }, 1600)
+  })
+}
+
+// 直接问 GitHub 要最新版本，免得每次发版还要手改这个页面。
+fetch('https://api.github.com/repos/ZhangXiaoMouTeam/anzi-home/releases/latest')
+  .then((response) => response.ok ? response.json() : Promise.reject())
+  .then((release) => {
+    const dmg = (release.assets || []).find((asset) => asset.name.endsWith('.dmg'))
+    const note = document.getElementById('release-note')
+    if (dmg) {
+      const size = (dmg.size / 1048576).toFixed(0)
+      const anchor = document.createElement('a')
+      anchor.className = 'btn'
+      anchor.href = dmg.browser_download_url
+      anchor.textContent = `下载 ${release.tag_name} (dmg, ${size} MB)`
+      document.getElementById('downloads').appendChild(anchor)
+    }
+    const date = (release.published_at || '').slice(0, 10)
+    note.textContent = `最新版本 ${release.tag_name}${date ? ` · 发布于 ${date}` : ''}`
+  })
+  .catch(() => {
+    document.getElementById('release-note').textContent = '版本信息暂时取不到，点上面的按钮到发布页查看。'
+  })
+</script>
+</body>
+</html>
