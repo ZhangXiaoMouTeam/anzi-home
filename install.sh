@@ -17,9 +17,15 @@ APP_NAME="ANZI 商品图.app"
 # 本项目代码签名证书的 SHA-1 指纹。
 FINGERPRINT="399b3f59103b6fd4826da59efa5a1562e0218ebe"
 
-if [ "$(uname -s)" != "Darwin" ] || [ "$(uname -m)" != "arm64" ]; then
-  echo "这个软件目前只支持 Apple 芯片的 Mac。" >&2
+if [ "$(uname -s)" != "Darwin" ]; then
+  echo "这个软件只支持 macOS。" >&2
   exit 1
+fi
+# Rosetta 终端里 uname -m 会报 x86_64，问内核拿真实架构。
+if [ "$(sysctl -n hw.optional.arm64 2>/dev/null || echo 0)" = "1" ]; then
+  ARCH="arm64"
+else
+  ARCH="x64"
 fi
 
 INSTALL_DIR="${ANZI_INSTALL_DIR:-/Applications}"
@@ -48,8 +54,25 @@ if ! curl -fsSL "https://github.com/${REPO}/releases/latest/download/latest-mac.
 fi
 
 VERSION="$(awk '/^version:/ {print $2; exit}' "${WORKDIR}/latest-mac.yml")"
-ZIP_NAME="$(awk '/^path:/ {print $2; exit}' "${WORKDIR}/latest-mac.yml")"
-EXPECTED_SHA="$(awk '/^sha512:/ {print $2; exit}' "${WORKDIR}/latest-mac.yml")"
+# 双架构清单里每个文件带自己的 sha512：按当前架构挑 zip，并取它对应的校验值。
+ZIP_NAME="$(awk -v arch="${ARCH}" '/- url:/ && $0 ~ arch".zip" {print $3; exit}' "${WORKDIR}/latest-mac.yml")"
+if [ -n "${ZIP_NAME}" ]; then
+  EXPECTED_SHA="$(awk -v name="${ZIP_NAME}" '
+    $0 ~ "- url: "name {found=1; next}
+    found && /sha512:/ {print $2; exit}
+  ' "${WORKDIR}/latest-mac.yml")"
+else
+  # 老版本清单只有 arm64 一份，落回顶层 path。
+  ZIP_NAME="$(awk '/^path:/ {print $2; exit}' "${WORKDIR}/latest-mac.yml")"
+  EXPECTED_SHA="$(awk '/^sha512:/ {print $2; exit}' "${WORKDIR}/latest-mac.yml")"
+  case "${ZIP_NAME}" in
+    *"${ARCH}"*) ;;
+    *)
+      echo "最新版本还没有当前架构（${ARCH}）的安装包，稍后再试或到发布页手动下载。" >&2
+      exit 1
+      ;;
+  esac
+fi
 if [ -z "${VERSION}" ] || [ -z "${ZIP_NAME}" ] || [ -z "${EXPECTED_SHA}" ]; then
   echo "发布清单格式不对，装不了。" >&2
   exit 1

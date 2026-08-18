@@ -4,28 +4,32 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>ANZI 商品图</title>
-<meta name="description" content="macOS 本地商品图生成与复检工具：导入拍摄目录，自动出主图和详情页。">
+<meta name="description" content="macOS 本地商品图生成与复检工具：导入拍摄目录，自动出主图和详情页。支持 Apple 芯片与 Intel。">
 <style>
   :root {
-    --bg: #fbfaf8;
-    --fg: #1c1b19;
-    --muted: #6f6a62;
-    --line: #e4e0d9;
+    --bg: #faf8f4;
+    --fg: #191713;
+    --muted: #6f6a60;
+    --faint: #a39d92;
+    --line: #e5e0d5;
     --card: #ffffff;
-    --accent: #1c1b19;
-    --code-bg: #211f1c;
-    --code-fg: #f2efe9;
+    --accent: #2f5d50;
+    --accent-ink: #24473d;
+    --code-bg: #1d1b17;
+    --code-fg: #f2efe8;
   }
   @media (prefers-color-scheme: dark) {
     :root {
-      --bg: #171614;
-      --fg: #f2efe9;
-      --muted: #a09a91;
-      --line: #302d29;
-      --card: #1f1d1a;
-      --accent: #f2efe9;
-      --code-bg: #0f0e0d;
-      --code-fg: #f2efe9;
+      --bg: #161511;
+      --fg: #ece8df;
+      --muted: #a09a8e;
+      --faint: #6f6a60;
+      --line: #2e2b25;
+      --card: #1e1c18;
+      --accent: #7fb3a2;
+      --accent-ink: #9cc6b8;
+      --code-bg: #0e0d0b;
+      --code-fg: #ece8df;
     }
   }
   * { box-sizing: border-box; }
@@ -33,23 +37,57 @@
     margin: 0;
     background: var(--bg);
     color: var(--fg);
-    font: 16px/1.7 -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", sans-serif;
+    font: 16px/1.75 -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", sans-serif;
     -webkit-font-smoothing: antialiased;
   }
-  .wrap { max-width: 720px; margin: 0 auto; padding: 72px 24px 96px; }
-  header { margin-bottom: 48px; }
-  h1 { margin: 0 0 12px; font-size: 40px; line-height: 1.2; letter-spacing: -0.02em; }
-  .lede { margin: 0; color: var(--muted); font-size: 18px; }
-  h2 { margin: 48px 0 16px; font-size: 20px; letter-spacing: -0.01em; }
+  .serif {
+    font-family: "Songti SC", "Noto Serif SC", "STSong", Georgia, serif;
+  }
+  .wrap { max-width: 780px; margin: 0 auto; padding: 0 24px 96px; }
+
+  nav {
+    display: flex; align-items: baseline; justify-content: space-between;
+    padding: 26px 0 0;
+  }
+  .brand {
+    font-family: "Songti SC", "Noto Serif SC", "STSong", Georgia, serif;
+    font-size: 17px; font-weight: 700; letter-spacing: 0.04em;
+    text-decoration: none; color: var(--fg);
+  }
+  .nav-links { display: flex; gap: 20px; font-size: 14px; }
+  .nav-links a { color: var(--muted); text-decoration: none; }
+  .nav-links a:hover { color: var(--fg); }
+
+  header.hero { padding: 84px 0 56px; border-bottom: 1px solid var(--line); }
+  .kicker {
+    font-size: 13px; letter-spacing: 0.18em; color: var(--accent);
+    margin: 0 0 18px;
+  }
+  h1 {
+    margin: 0 0 20px;
+    font-family: "Songti SC", "Noto Serif SC", "STSong", Georgia, serif;
+    font-size: clamp(38px, 7vw, 56px); line-height: 1.22; font-weight: 700;
+    letter-spacing: 0.01em; text-wrap: balance;
+  }
+  .lede { margin: 0; color: var(--muted); font-size: 19px; max-width: 34em; }
+
+  h2 {
+    margin: 60px 0 18px;
+    font-family: "Songti SC", "Noto Serif SC", "STSong", Georgia, serif;
+    font-size: 24px; font-weight: 700; letter-spacing: 0.02em;
+  }
   p { margin: 0 0 16px; }
   .muted { color: var(--muted); }
   .small { font-size: 14px; }
+  a { color: inherit; }
+  a:hover { color: var(--accent-ink); }
+
   .cmd {
     position: relative;
     background: var(--code-bg);
     color: var(--code-fg);
     border-radius: 12px;
-    padding: 18px 60px 18px 20px;
+    padding: 18px 64px 18px 20px;
     overflow-x: auto;
   }
   .cmd code {
@@ -62,27 +100,49 @@
     border: 0; border-radius: 8px; padding: 6px 10px;
     font-size: 12px; cursor: pointer;
   }
-  .copy:hover { background: rgba(255,255,255,.22); }
+  .copy:hover { background: rgba(255,255,255,.24); }
+  .copy:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
   .box {
     border: 1px solid var(--line); background: var(--card);
-    border-radius: 12px; padding: 20px;
+    border-radius: 14px; padding: 22px;
   }
   .row { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
-  a { color: inherit; }
   .btn {
     display: inline-block; text-decoration: none;
     border: 1px solid var(--line); border-radius: 10px;
-    padding: 10px 16px; font-size: 15px; background: var(--card);
+    padding: 10px 18px; font-size: 15px; background: var(--card);
   }
-  .btn:hover { border-color: var(--accent); }
-  .btn-primary { background: var(--accent); color: var(--bg); border-color: var(--accent); }
-  ol, ul { margin: 0 0 16px; padding-left: 22px; }
-  li { margin-bottom: 8px; }
+  .btn:hover { border-color: var(--accent); color: var(--accent-ink); }
+  .btn-primary {
+    background: var(--accent); color: var(--bg); border-color: var(--accent);
+  }
+  .btn-primary:hover { color: var(--bg); filter: brightness(1.08); }
+
+  .features {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 14px;
+    margin-top: 22px;
+  }
+  @media (max-width: 640px) { .features { grid-template-columns: 1fr; } }
+  .feature {
+    border: 1px solid var(--line); background: var(--card);
+    border-radius: 14px; padding: 20px;
+  }
+  .feature strong {
+    display: block; margin-bottom: 6px;
+    font-family: "Songti SC", "Noto Serif SC", "STSong", Georgia, serif;
+    font-size: 17px; letter-spacing: 0.02em;
+  }
+  .feature p { margin: 0; color: var(--muted); font-size: 14.5px; }
+
   footer {
-    margin-top: 64px; padding-top: 24px;
+    margin-top: 72px; padding-top: 26px;
     border-top: 1px solid var(--line);
     color: var(--muted); font-size: 14px;
+    display: flex; flex-wrap: wrap; gap: 8px 20px; justify-content: space-between;
   }
+  footer a { color: var(--muted); }
+  footer a:hover { color: var(--fg); }
   code.inline {
     background: var(--card); border: 1px solid var(--line);
     border-radius: 6px; padding: 1px 6px;
@@ -93,13 +153,22 @@
 <body>
 <div class="wrap">
 
-<header>
-  <h1>ANZI 商品图</h1>
-  <p class="lede">导入一个款号的拍摄目录，本机识别尺码与面料，自动排出全套主图和详情页。</p>
+<nav>
+  <a class="brand" href="./">ANZI 商品图</a>
+  <div class="nav-links">
+    <a href="https://github.com/ZhangXiaoMouTeam/anzi-home">GitHub</a>
+    <a href="https://github.com/ZhangXiaoMouTeam/anzi-home/releases">全部版本</a>
+  </div>
+</nav>
+
+<header class="hero">
+  <p class="kicker">MACOS · APPLE 芯片与 INTEL</p>
+  <h1>一个拍摄目录，<br>换回全套商品图。</h1>
+  <p class="lede">导入一个款号的拍摄目录，本机识别尺码与面料，自动排出全套主图和详情页，全部过检后才交付。</p>
 </header>
 
 <h2>安装</h2>
-<p class="muted small">macOS · Apple 芯片。把下面这行粘进「终端」回车即可，装完会自动打开。</p>
+<p class="muted small">把下面这行粘进「终端」回车即可，Apple 芯片和 Intel 都会自动装对应版本，装完自动打开。</p>
 <div class="cmd">
   <button class="copy" onclick="copyCommand(this)">复制</button>
   <code id="install-cmd">curl -fsSL https://raw.githubusercontent.com/ZhangXiaoMouTeam/anzi-home/main/install.sh | bash</code>
@@ -125,16 +194,31 @@
 </p>
 
 <h2>用它做什么</h2>
-<ul>
-  <li>识别尺码表和面料成分，中文与尺码表由模板确定性排版，不让模型写字</li>
-  <li>按固定版式输出 10 张主图和 26 张详情图，同一款只生成一次母版</li>
-  <li>素材直接导入，AI 认出类别和标签，认错的可以逐个改</li>
-  <li>全部通过后才导出，附带来源、版本和校验值完整的清单</li>
-</ul>
+<div class="features">
+  <div class="feature">
+    <strong>识别不靠手输</strong>
+    <p>尺码表和面料成分本机识别，中文与尺码表由模板确定性排版，不让模型写字。</p>
+  </div>
+  <div class="feature">
+    <strong>一次生成全套</strong>
+    <p>按固定版式输出 10 张主图和 26 张详情图，同一款只生成一次母版。</p>
+  </div>
+  <div class="feature">
+    <strong>素材自动归类</strong>
+    <p>素材直接导入，AI 认出类别和标签，认错的可以逐个改。</p>
+  </div>
+  <div class="feature">
+    <strong>过检才交付</strong>
+    <p>全部通过后才导出，附带来源、版本和校验值完整的清单。</p>
+  </div>
+</div>
 
 <footer>
-  源码在私有仓库，本仓库只分发安装包 ·
-  <a href="https://github.com/ZhangXiaoMouTeam/anzi-home/releases">全部版本</a>
+  <span>源码在私有仓库，本仓库只分发安装包</span>
+  <span>
+    <a href="https://github.com/ZhangXiaoMouTeam/anzi-home">GitHub</a> ·
+    <a href="https://github.com/ZhangXiaoMouTeam/anzi-home/releases">全部版本</a>
+  </span>
 </footer>
 
 </div>
@@ -151,18 +235,37 @@ function copyCommand(button) {
 fetch('https://api.github.com/repos/ZhangXiaoMouTeam/anzi-home/releases/latest')
   .then((response) => response.ok ? response.json() : Promise.reject())
   .then((release) => {
-    const dmg = (release.assets || []).find((asset) => asset.name.endsWith('.dmg'))
-    const note = document.getElementById('release-note')
-    if (dmg) {
+    const assets = release.assets || []
+    const downloads = document.getElementById('downloads')
+    const variants = [
+      ['-arm64.dmg', 'Apple 芯片'],
+      ['-x64.dmg', 'Intel']
+    ]
+    let listed = 0
+    for (const [suffix, label] of variants) {
+      const dmg = assets.find((asset) => asset.name.endsWith(suffix))
+      if (!dmg) continue
       const size = (dmg.size / 1048576).toFixed(0)
       const anchor = document.createElement('a')
       anchor.className = 'btn'
       anchor.href = dmg.browser_download_url
-      anchor.textContent = `下载 ${release.tag_name} (dmg, ${size} MB)`
-      document.getElementById('downloads').appendChild(anchor)
+      anchor.textContent = `${label} dmg · ${size} MB`
+      downloads.appendChild(anchor)
+      listed += 1
+    }
+    if (listed === 0) {
+      const dmg = assets.find((asset) => asset.name.endsWith('.dmg'))
+      if (dmg) {
+        const anchor = document.createElement('a')
+        anchor.className = 'btn'
+        anchor.href = dmg.browser_download_url
+        anchor.textContent = `下载 ${release.tag_name} (dmg)`
+        downloads.appendChild(anchor)
+      }
     }
     const date = (release.published_at || '').slice(0, 10)
-    note.textContent = `最新版本 ${release.tag_name}${date ? ` · 发布于 ${date}` : ''}`
+    document.getElementById('release-note').textContent =
+      `最新版本 ${release.tag_name}${date ? ` · 发布于 ${date}` : ''}`
   })
   .catch(() => {
     document.getElementById('release-note').textContent = '版本信息暂时取不到，点上面的按钮到发布页查看。'
