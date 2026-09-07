@@ -18,7 +18,7 @@ APP_NAME="ANZI 商品图.app"
 FINGERPRINT="399b3f59103b6fd4826da59efa5a1562e0218ebe"
 
 if [ "$(uname -s)" != "Darwin" ]; then
-  echo "这个软件只支持 macOS。" >&2
+  echo "这个安装脚本只适用于 macOS。Windows 请到 https://github.com/ZhangXiaoMouTeam/anzi-home/releases/latest 下载 EXE 或 ZIP。" >&2
   exit 1
 fi
 # Rosetta 终端里 uname -m 会报 x86_64，问内核拿真实架构。

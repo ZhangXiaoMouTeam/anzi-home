@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>ANZI 商品图</title>
-<meta name="description" content="macOS 本地商品图生成与复检工具：导入拍摄目录，自动出主图和详情页。支持 Apple 芯片与 Intel。">
+<meta name="description" content="ANZI 商品图生成与复检工具：导入拍摄目录，自动出主图和详情页。支持 macOS Apple 芯片、Intel 与 Windows x64。">
 <style>
   :root {
     --bg: #faf8f4;
@@ -162,12 +162,12 @@
 </nav>
 
 <header class="hero">
-  <p class="kicker">MACOS · APPLE 芯片与 INTEL</p>
+  <p class="kicker">MACOS · APPLE 芯片与 INTEL · WINDOWS X64</p>
   <h1>一个拍摄目录，<br>换回全套商品图。</h1>
-  <p class="lede">导入一个款号的拍摄目录，本机识别尺码与面料，自动排出全套主图和详情页，全部过检后才交付。</p>
+  <p class="lede">导入一个款号的拍摄目录，识别尺码与面料，自动生成全套主图和详情页，完成后统一人工审核再交付。</p>
 </header>
 
-<h2>安装</h2>
+<h2>Mac 安装</h2>
 <p class="muted small">把下面这行粘进「终端」回车即可，Apple 芯片和 Intel 都会自动装对应版本，装完自动打开。</p>
 <div class="cmd">
   <button class="copy" onclick="copyCommand(this)">复制</button>
@@ -179,7 +179,7 @@
 </p>
 
 <h2>更新</h2>
-<p>装好之后不用再管：软件启动时会自己检查新版本，在后台下好之后提示你重启装上。</p>
+<p>Mac 版会检查新版本，在后台下载完成后提示重启安装。Windows 版请从下方下载最新安装包覆盖安装，保留原有本地数据。</p>
 
 <h2>手动下载</h2>
 <div class="box">
@@ -192,20 +192,24 @@
   用浏览器下载 dmg 安装的话，首次打开需要<strong>右键点应用图标 → 打开</strong>。
   这是因为安装包用的是本项目自己的证书，不是 Apple 签发的；上面那行命令不会有这个问题。
 </p>
+<p class="small muted">
+  Windows 10/11（64 位）请选择 EXE 安装包，或 ZIP 免安装包。Windows 包尚未配置发布者签名，系统可能提示未知发布者；请确认下载来自本项目，并按发布页的 SHA256SUMS.txt 核对文件。
+</p>
+<p class="small muted">使用 AI 识别与生图前，需要在本机安装并登录 Codex CLI。调用 AI 时会按任务发送所选商品图片；本地 OCR 是识别失败时的补充。</p>
 
 <h2>用它做什么</h2>
 <div class="features">
   <div class="feature">
     <strong>识别不靠手输</strong>
-    <p>尺码表和面料成分本机识别，中文与尺码表由模板确定性排版，不让模型写字。</p>
+    <p>优先用 Codex CLI 识别，必要时由本地 OCR 补充；中文与尺码表由模板确定性排版，不让生图模型写字。</p>
   </div>
   <div class="feature">
     <strong>一次生成全套</strong>
-    <p>按固定版式输出 10 张主图和 26 张详情图，同一款只生成一次母版。</p>
+    <p>按选定方案生成主图和详情图，支持头部出画的模特展示；各视角母版复用于不同版式，独立视角可并行生成。</p>
   </div>
   <div class="feature">
-    <strong>素材自动归类</strong>
-    <p>素材直接导入，AI 认出类别和标签，认错的可以逐个改。</p>
+    <strong>细节取景可调整</strong>
+    <p>自动按商品特征选择不同细节，也可以指定展示部位；调整后复用母版重新排版，无需重新生图。</p>
   </div>
   <div class="feature">
     <strong>过检才交付</strong>
@@ -238,18 +242,20 @@ fetch('https://api.github.com/repos/ZhangXiaoMouTeam/anzi-home/releases/latest')
     const assets = release.assets || []
     const downloads = document.getElementById('downloads')
     const variants = [
-      ['-arm64.dmg', 'Apple 芯片'],
-      ['-x64.dmg', 'Intel']
+      ['-arm64.dmg', 'Mac Apple 芯片 · DMG'],
+      ['-x64.dmg', 'Mac Intel · DMG'],
+      ['-windows-x64.exe', 'Windows x64 · EXE'],
+      ['-windows-x64.zip', 'Windows x64 · ZIP']
     ]
     let listed = 0
     for (const [suffix, label] of variants) {
-      const dmg = assets.find((asset) => asset.name.endsWith(suffix))
-      if (!dmg) continue
-      const size = (dmg.size / 1048576).toFixed(0)
+      const asset = assets.find((asset) => asset.name.endsWith(suffix))
+      if (!asset) continue
+      const size = (asset.size / 1048576).toFixed(0)
       const anchor = document.createElement('a')
       anchor.className = 'btn'
-      anchor.href = dmg.browser_download_url
-      anchor.textContent = `${label} dmg · ${size} MB`
+      anchor.href = asset.browser_download_url
+      anchor.textContent = `${label} · ${size} MB`
       downloads.appendChild(anchor)
       listed += 1
     }
