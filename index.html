@@ -185,8 +185,12 @@
 <div class="box">
   <div class="row" id="downloads">
     <a class="btn btn-primary" href="https://github.com/ZhangXiaoMouTeam/anzi-home/releases/latest">前往最新版本</a>
+    <a class="btn" data-release-suffix="-arm64.dmg" href="https://github.com/ZhangXiaoMouTeam/anzi-home/releases/download/v2026.9.1/ANZI-ProductImage-2026.9.1-arm64.dmg">Mac Apple 芯片 · DMG · v2026.9.1</a>
+    <a class="btn" data-release-suffix="-x64.dmg" href="https://github.com/ZhangXiaoMouTeam/anzi-home/releases/download/v2026.9.1/ANZI-ProductImage-2026.9.1-x64.dmg">Mac Intel · DMG · v2026.9.1</a>
+    <a class="btn" data-release-suffix="-windows-x64.exe" href="https://github.com/ZhangXiaoMouTeam/anzi-home/releases/download/v2026.9.1/ANZI-ProductImage-2026.9.1-windows-x64.exe">Windows x64 · EXE · v2026.9.1</a>
+    <a class="btn" data-release-suffix="-windows-x64.zip" href="https://github.com/ZhangXiaoMouTeam/anzi-home/releases/download/v2026.9.1/ANZI-ProductImage-2026.9.1-windows-x64.zip">Windows x64 · ZIP · v2026.9.1</a>
   </div>
-  <p class="small muted" style="margin:14px 0 0" id="release-note">正在获取版本信息…</p>
+  <p class="small muted" style="margin:14px 0 0" id="release-note">v2026.9.1 · 发布于 2026-09-07</p>
 </div>
 <p class="small muted" style="margin-top:12px">
   用浏览器下载 dmg 安装的话，首次打开需要<strong>右键点应用图标 → 打开</strong>。
@@ -235,7 +239,7 @@ function copyCommand(button) {
   })
 }
 
-// 直接问 GitHub 要最新版本，免得每次发版还要手改这个页面。
+// 静态链接始终可用；GitHub 接口仅增强版本信息，限流时不影响下载。
 fetch('https://api.github.com/repos/ZhangXiaoMouTeam/anzi-home/releases/latest')
   .then((response) => response.ok ? response.json() : Promise.reject())
   .then((release) => {
@@ -252,11 +256,13 @@ fetch('https://api.github.com/repos/ZhangXiaoMouTeam/anzi-home/releases/latest')
       const asset = assets.find((asset) => asset.name.endsWith(suffix))
       if (!asset) continue
       const size = (asset.size / 1048576).toFixed(0)
-      const anchor = document.createElement('a')
+      const existing = downloads.querySelector(`[data-release-suffix="${suffix}"]`)
+      const anchor = existing || document.createElement('a')
       anchor.className = 'btn'
+      anchor.dataset.releaseSuffix = suffix
       anchor.href = asset.browser_download_url
-      anchor.textContent = `${label} · ${size} MB`
-      downloads.appendChild(anchor)
+      anchor.textContent = `${label} · ${release.tag_name} · ${size} MB`
+      if (!existing) downloads.appendChild(anchor)
       listed += 1
     }
     if (listed === 0) {
@@ -274,7 +280,7 @@ fetch('https://api.github.com/repos/ZhangXiaoMouTeam/anzi-home/releases/latest')
       `最新版本 ${release.tag_name}${date ? ` · 发布于 ${date}` : ''}`
   })
   .catch(() => {
-    document.getElementById('release-note').textContent = '版本信息暂时取不到，点上面的按钮到发布页查看。'
+    document.getElementById('release-note').textContent = '已提供 v2026.9.1 下载。暂时无法查询更新，可前往发布页查看最新版本。'
   })
 </script>
 </body>
